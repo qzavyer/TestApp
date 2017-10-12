@@ -6,7 +6,7 @@
 
 <div class="row">
     <div class="col-md-6" style="overflow: auto;" id="fields">
-        <div style="width: 500px; height: 500px; background: gray" id="fields2">
+        
             @foreach (var field in Model)
             {
                 <div style="position: relative; left: @(field.X)px; top: @(field.Y)px;">
@@ -19,7 +19,7 @@
                                        value="@field.Data" />
                 </div>
             }
-        </div>
+        
     </div>
     <div class="col-md-6" style="overflow: auto;" id="border">
         <img src="" alt="" id="billImage" />
