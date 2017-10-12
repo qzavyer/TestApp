@@ -1,0 +1,130 @@
+﻿@{
+    ViewBag.Title = "Test";
+}
+
+@model IEnumerable<TestApp.Data.Field>
+
+<div class="row">
+    <div class="col-md-6" style="overflow: auto;" id="fields">
+        <div style="width: 500px; height: 500px; background: gray" id="fields2">
+            @foreach (var field in Model)
+            {
+                <div style="position: relative; left: @(field.X)px; top: @(field.Y)px;">
+                    @field.Name <input onfocus="setBillPosition(this, @field.X1, @field.Y1, @field.Width, @field.Height)"
+                                       onkeyup="chekFiedl(this, event)"
+                                       onblur="clearOutline(this)"
+                                       data-url="@Url.Content("~/Content/Img/" + field.PictureUrl)"
+                                       data-pattern="@field.ValidationString"
+                                       data-fieldname="@field.Name"
+                                       value="@field.Data" />
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-md-6" style="overflow: auto;" id="border">
+        <img src="" alt="" id="billImage" />
+        <div style="width: 0; height: 0; position: absolute;" id="frame"></div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+        $("#border").height(window.innerHeight);
+        $("#fields").height(window.innerHeight);
+    });
+
+    var red = "rgba(255, 0, 0, 0.5)";
+    var green = "rgba(0, 255, 0, 0.5)";
+
+    var coords = {};
+
+    function reloadField(a) {
+        var name = $(a).data("fieldname");
+        $.ajax({
+            url: "GetDataByName",
+            dataType: "text",
+            type: "GET",
+            cache: false,
+            data: {
+                name : name
+            },
+            success:function (tdata) {
+                $(a).val(tdata);
+                redrow(a);
+            }
+        });
+    }
+
+    function chekFiedl(a,e) {
+        var charCode = e.charCode || e.keyCode;
+        if (charCode === 13 && e.ctrlKey) {
+            reloadField(a);
+        }
+        redrow(a);
+    }
+
+    function clearOutline(a) {
+        $(a).css({ "outline-style": "none" });
+    }
+
+    function setBillPosition(a, x, y, w, h) {
+        var $img = $("#billImage");
+        $img.attr("src", $(a).data("url"));
+
+        var timer = setTimeout(function() {
+            $img.removeAttr("style");
+
+            var imgWidth = $img.width();
+            var imgHeight = $img.height();
+            var $border = $("#border");
+            var borderWidth = $border.width();
+            var borderHeight = $("body").find(".body-content").height();
+            $border.height(borderHeight);
+            $("#fields").height(borderHeight);
+
+            var dw = w / (borderWidth/2);
+            var dh = h / (borderHeight/2);
+
+            var coef = Math.max(dw, dh);
+
+            w /= coef;
+            h /= coef;
+
+            x /= coef;
+            y /= coef;
+
+            imgWidth /= coef;
+            imgHeight /= coef;
+
+            coords.x = x;
+            coords.y = y;
+            coords.w = w;
+            coords.h = h;
+            coords.dx = x - (borderWidth - w) / 2 + 5;
+            coords.dy = y - (borderHeight - h) / 2+5;
+            coords.iw = imgWidth;
+            coords.ih = imgHeight;
+
+            redrow(a);
+            clearTimeout(timer);
+        }, 200);
+
+    }
+
+    function redrow(a)
+    {
+        var pattern = $(a).data("pattern");
+        var color;
+        if ($(a).val().match(pattern)) {
+            color = green;
+        } else {
+            color = red;
+        }
+        $(a).css({ "outline-color": color, "outline-style": "auto" });
+        $("#billImage").width(coords.iw).height(coords.ih);
+        $("#border").animate({ scrollTop: coords.dy, scrollLeft: coords.dx }, 0);
+        $("#frame").width(coords.w).height(coords.h).css({ "background-color": green, top: coords.y, left: coords.x });
+    }
+
+</script>
